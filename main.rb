@@ -27,26 +27,26 @@ end
 #   p player
 # end
 
-player = CardGame::Player.new(name: 'ug')
-def start_game!(players)
-  game = CardGame::Game::BlackJack.new(players: players)
-  game.deal!
-  game.check_hands
-  game
-end
-
-scores = []
-Array.new(1_000_00) do |i|
-  game = start_game!([player])
-  scores << { score: game.players[0].score, index: i }
-end
-
-grouped = scores
-    .sort_by { |score| score[:score] }
-    .group_by { |score| score[:score] }
-p Parallel
-    .map(grouped) { |k, v| [k, v.length] }
-    .to_h
+#player = CardGame::Player.new(name: 'ug')
+#def start_game!(players)
+#  game = CardGame::Game::BlackJack.new(players: players)
+#  game.deal!
+#  game.check_hands
+#  game
+#end
+#
+#scores = []
+#Array.new(1_000_00) do |i|
+#  game = start_game!([player])
+#  scores << { score: game.players[0].score, index: i }
+#end
+#
+#grouped = scores
+#    .sort_by { |score| score[:score] }
+#    .group_by { |score| score[:score] }
+#p Parallel
+#    .map(grouped) { |k, v| [k, v.length] }
+#    .to_h
 
 # while game.players.sort_by(&:score).last.score != 21
 #   i += 1
@@ -56,3 +56,24 @@ p Parallel
 # game.players.sort_by(&:score).each do |player|
 #   p player
 # end
+
+
+def weighted_sample(options, weights)
+  total_weight = weights.sum
+  target = rand * total_weight
+  cumulative_weight = 0
+
+  options.each_with_index do |option, index|
+    cumulative_weight += weights[index]
+    return option if target < cumulative_weight
+  end
+end
+
+options = ['A', 'B', 'C']
+weights = [1, 3, 6]  # Aが出る確率はBの1/3、Cの1/6
+
+result = Array.new(100_000) do
+  weighted_sample(options, weights)
+end.group_by { |a| a }.map { |k ,v| [k, v.length] }.to_h
+
+p result
