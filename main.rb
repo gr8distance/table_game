@@ -1,4 +1,5 @@
 require 'pry'
+require 'parallel'
 
 class Card
   class InvalidType < StandardError; end
@@ -65,15 +66,21 @@ class Game
       player.hand = @deck.pop(number).sort_by(&:number)
     end
   end
-end
 
-class Porker < Game
   def check_hands
     @players.each do |player|
       check_hand!(player)
     end
   end
 
+  private
+
+  def check_hand!(player)
+    raise NotImplementedError
+  end
+end
+
+class Porker < Game
   def deal!
     super(5)
   end
@@ -177,21 +184,95 @@ class Porker < Game
   end
 end
 
+class BlackJack < Game
+  def deal!
+    super(2)
+  end
+
+  private
+
+  def check_hand!(player)
+    hand = player.hand.sort_by(&:number)
+    case
+    when black_jack?(hand)
+      player.score = 21
+    when hand.sum(&:number) == 2
+      player.score == 12
+    when in_1_but_not_black_jack?(hand)
+      player.score = count_score(hand)
+    else
+      player.score = count_score(hand)
+    end
+  end
+
+  private
+
+  def count_score(hand)
+    hand.sum do |n|
+      case
+      when n == 1 then 11
+      when n >= 10 then 10
+      else
+        n
+      end
+    end
+  end
+
+  def black_jack?(hand)
+    numbers = hand.map(&:number)
+    numbers[0] == 1 && numbers[1] >= 10
+  end
+
+  def in_1_but_not_black_jack?(hand)
+    hand.map!(&:number).include?(1)
+  end
+end
+
 aqours = %w[高海千歌 渡辺曜 桜内莉子 黒澤ルビー 国木田花丸 津島善子 松浦果南 黒澤ダイヤ 小原鞠莉].map do |name|
   Player.new(name: name)
 end
+#
+# def start_game!(players)
+#   game = Porker.new(players: players)
+#   game.deal!
+#   game.check_hands
+#   game
+# end
+#
+# game = start_game!(aqours)
+# while game.players.sort_by(&:score).last.score != 9
+#   game = start_game!(aqours)
+# end
+# game.players.sort_by(&:score).each do |player|
+#   p player
+# end
 
+player = Player.new(name: 'ug')
 def start_game!(players)
-  game = Porker.new(players: players)
+  game = BlackJack.new(players: players)
   game.deal!
   game.check_hands
   game
 end
 
-game = start_game!(aqours)
-while game.players.sort_by(&:score).last.score != 9
-  game = start_game!(aqours)
+scores = []
+Array.new(1_000_00) do |i|
+  game = start_game!([player])
+  scores << { score: game.players[0].score, index: i }
 end
-game.players.sort_by(&:score).each do |player|
-  p player
-end
+
+grouped = scores
+    .sort_by { |score| score[:score] }
+    .group_by { |score| score[:score] }
+p Parallel
+    .map(grouped) { |k, v| [k, v.length] }
+    .to_h
+
+# while game.players.sort_by(&:score).last.score != 21
+#   i += 1
+#   game = start_game!([player])
+# end
+# puts i
+# game.players.sort_by(&:score).each do |player|
+#   p player
+# end
