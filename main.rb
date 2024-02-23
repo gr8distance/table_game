@@ -1,15 +1,17 @@
 require 'pry'
 require 'parallel'
 
-require './lib/card_game/player'
-require './lib/card_game/card'
-require './lib/card_game/deck'
-require './lib/card_game/game/base'
-require './lib/card_game/game/porker'
-require './lib/card_game/game/black_jack'
+require './lib/util/player'
+require './lib/util/card'
+require './lib/util/deck'
+require './lib/util/dice'
+require './lib/game/base'
+require './lib/game/porker'
+require './lib/game/black_jack'
+require './lib/game/chinchiro'
 
 aqours = %w[高海千歌 渡辺曜 桜内莉子 黒澤ルビー 国木田花丸 津島善子 松浦果南 黒澤ダイヤ 小原鞠莉].map do |name|
-  CardGame::Player.new(name: name)
+  TableGame::Util::Player.new(name: name)
 end
 
 # def start_game!(players)
@@ -27,9 +29,9 @@ end
 #   p player
 # end
 
-#player = CardGame::Player.new(name: 'ug')
+#player = TableGame::Util::Player.new(name: 'ug')
 #def start_game!(players)
-#  game = CardGame::Game::BlackJack.new(players: players)
+#  game = TableGame::Util::Game::BlackJack.new(players: players)
 #  game.deal!
 #  game.check_hands
 #  game
@@ -76,4 +78,7 @@ result = Array.new(100_000) do
   weighted_sample(options, weights)
 end.group_by { |a| a }.map { |k ,v| [k, v.length] }.to_h
 
-p result
+player = TableGame::Util::Player.new(name: 'UG')
+game = TableGame::Game::Chinchiro.new(players: [player])
+game.play(player)
+binding.pry

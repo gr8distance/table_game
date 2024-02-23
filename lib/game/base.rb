@@ -1,9 +1,9 @@
-module CardGame
+module TableGame
   module Game
     class Base
       attr_reader :deck, :players
       def initialize(players:)
-        @deck = CardGame::Deck.new.shuffle
+        @deck = TableGame::Deck.new.shuffle
         @players = players
       end
 

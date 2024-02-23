@@ -1,4 +1,4 @@
-module CardGame
+module TableGame
   module Game
     class BlackJack < Base
       def deal!

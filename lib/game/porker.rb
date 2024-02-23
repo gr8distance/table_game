@@ -1,4 +1,4 @@
-module CardGame
+module TableGame
   module Game
     class Porker < Base
       def deal!
