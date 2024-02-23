@@ -80,5 +80,29 @@ end.group_by { |a| a }.map { |k ,v| [k, v.length] }.to_h
 
 player = TableGame::Util::Player.new(name: 'UG')
 game = TableGame::Game::Chinchiro.new(players: [player])
-game.play(player)
+
+try = 100
+lo = 10000
+results = Array.new(try) do
+  scores = Array.new(lo) do
+    game.play(player)
+    {
+      score: player.score,
+      hand: player.hand,
+      hand_name: player.hand_name
+    }
+  end
+  scores.group_by { |s| s[:score] }.map { |k, v| [k, v.count] }.sort_by(&:first).to_h
+end
+
+keys = results.first.keys
+hoge = results.reduce({}) do |acm, r|
+  keys.each do |key|
+    acm[key] ||= []
+    acm[key] = acm[key] + [r[key].to_i]
+  end
+  acm
+end.map do |key, value|
+  [key, value.sum / try * 0.01]
+end.to_h
 binding.pry
